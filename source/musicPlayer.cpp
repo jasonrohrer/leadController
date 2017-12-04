@@ -341,7 +341,7 @@ void getSoundSamples( Uint8 *inBuffer, int inLengthToFillInBytes ) {
                                          4 * gridStepSamples, 0 };
                 drumNotes.push_back( note );
                 }
-            if( gridStepNumber % 4 == 0 ) {
+            if( gridStepNumber % 8 == 0 ) {
                 PlayingDrumNote note = { kickTimbre, kickEnvelope,
                                          4 * gridStepSamples, 0 };
                 drumNotes.push_back( note );
