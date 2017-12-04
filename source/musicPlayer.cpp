@@ -1,4 +1,5 @@
 #include "minorGems/game/game.h"
+#include "minorGems/util/SimpleVector.h"
 
 #include "Timbre.h"
 #include "Envelope.h"
@@ -17,6 +18,14 @@ static int lastPlayX;
 static Timbre *timbre;
 // 5 note lengths
 static Envelope *envelope;
+
+
+static Timbre *snareTimbre;
+static Timbre *kickTimbre;
+
+static Envelope *snareEnvelope;
+static Envelope *kickEnvelope;
+
 
 // c
 //double keyFrequency = 261.63;
@@ -46,6 +55,21 @@ static int curNotePitch = -1;
 static int curNoteStepLength = -1;
 
 static int curNoteSamplesPassed = 0;
+
+
+
+typedef struct {
+        Timbre *t;
+        Envelope *e;
+        
+        int sampleDuration;
+        int nextSample;
+    } PlayingDrumNote;
+
+
+SimpleVector<PlayingDrumNote> drumNotes;
+
+    
 
 
 
@@ -115,6 +139,31 @@ double whiteNoise( double inT ) {
     }
 
 
+// white noise where each sample is averaged with last sample
+// effectively a low-pass filter
+double lastNoiseSample = 0;
+
+double smoothedWhiteNoise( double inT ) {
+    // give double-weight to last sample to make it even smoother
+    lastNoiseSample = ( 2 * lastNoiseSample + whiteNoise( inT ) ) / 3;
+    
+    return lastNoiseSample;
+    }
+
+
+
+// a sine wave that falls off over time
+double sinThwip( double inT ) {
+    return sin( inT / (1 + pow(inT, .2) ) ) ;
+    }
+
+double kickWave( double inT ) {
+    return sinThwip( inT ) +
+        // white noise at start, then fall-off
+        smoothedWhiteNoise( inT ) * ( 1 - inT / (inT + 10 ) );
+    }
+
+
 
 
 #include "minorGems/sound/filters/coefficientFilters.h"
@@ -176,10 +225,44 @@ void initMusicPlayer() {
                          harmonicSaw,
                          1, 10 );
 
-    envelope = new Envelope( 0.01, 0.8, 0.0,
+    envelope = new Envelope( 0.00, 0.8, 0.0,
                              1,
                              16,
                              gridStepSamples );
+
+
+
+
+     snareTimbre = new Timbre( sampleRate, 0.25,
+                               keyFrequency/2,
+                               1, smoothedWhiteNoise,
+                               // extra periods per table so that
+                               // noise doesn't become tonal through
+                               // short looping
+                               10 ); 
+
+    snareEnvelope = new Envelope(
+        0.0, 0.125, 0.0, 0.0,
+        4,
+        4,
+        gridStepSamples );
+
+
+    // kick drum type sound
+    kickTimbre = new Timbre( sampleRate, 0.25,
+                             keyFrequency,
+                             1, kickWave,
+                             // extra periods in table to make room
+                             // for entire kick sweep
+                             200 ); 
+
+    kickEnvelope = new Envelope(
+        // AHR model
+        0.0, 0.25, 0.05,
+        4,
+        4,
+        gridStepSamples );
+
     
     }
 
@@ -188,6 +271,11 @@ void initMusicPlayer() {
 void freeMusicPlayer() {
     delete timbre;
     delete envelope;
+
+    delete snareTimbre;
+    delete kickTimbre;
+    delete snareEnvelope;
+    delete kickEnvelope;
     }
 
 
@@ -246,6 +334,21 @@ void getSoundSamples( Uint8 *inBuffer, int inLengthToFillInBytes ) {
         if( numSamplesPassed % gridStepSamples == 0 ) {
             // beginning of new step
             
+            int gridStepNumber = numSamplesPassed / gridStepSamples;
+            
+            if( false && gridStepNumber % 4 == 0 ) {
+                PlayingDrumNote note = { snareTimbre, snareEnvelope,
+                                         4 * gridStepSamples, 0 };
+                drumNotes.push_back( note );
+                }
+            if( gridStepNumber % 4 == 0 ) {
+                PlayingDrumNote note = { kickTimbre, kickEnvelope,
+                                         4 * gridStepSamples, 0 };
+                drumNotes.push_back( note );
+                }
+            
+                
+
             if( curNoteStepsleft == 0 ) {
 
                 if( pressedX >= 0 && pressedY >= 0 ) {
@@ -290,6 +393,26 @@ void getSoundSamples( Uint8 *inBuffer, int inLengthToFillInBytes ) {
             samplesR[i] = samplesL[i];
             }
         
+        for( int n=0; n<drumNotes.size(); n++ ) {
+            PlayingDrumNote *note = drumNotes.getElement( n );
+            
+            samplesL[i] += note->e->getEnvelope( 4 )
+                [ note->nextSample ]
+                *
+                note->t->mWaveTable[ 0 ]
+                [ note->nextSample % 
+                      note->t->mWaveTableLengths[ 0 ] ];
+            samplesR[i] = samplesL[i];
+
+            note->nextSample++;
+
+            if( note->nextSample == note->sampleDuration ) {
+                drumNotes.deleteElement( n );
+                n--;
+                }
+            }
+        
+
 
         numSamplesPassed++;
         curNoteSamplesPassed++;
