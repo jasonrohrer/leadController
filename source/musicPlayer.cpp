@@ -338,7 +338,7 @@ void getSoundSamples( Uint8 *inBuffer, int inLengthToFillInBytes ) {
             
             int gridStepNumber = numSamplesPassed / gridStepSamples;
             
-            if( gridStepNumber % 8 == 0 ) {
+            if( ( gridStepNumber + 4 ) % 8 == 0 ) {
                 PlayingDrumNote note = { snareTimbre, snareEnvelope,
                                          0,
                                          4 * gridStepSamples, 0 };
@@ -355,7 +355,10 @@ void getSoundSamples( Uint8 *inBuffer, int inLengthToFillInBytes ) {
 
             if( curNoteStepsleft == 0 ) {
 
-                if( pressedX >= 0 && pressedY >= 0 ) {
+                if( pressedX >= 0 && pressedY >= 0 &&
+                    // on-grid for next note length
+                    numSamplesPassed / gridStepSamples % 
+                    lrint( pow( 2, pressedX ) ) == 0 ) {
                     
                     // start new note
                     curNotePitch = pressedY;
