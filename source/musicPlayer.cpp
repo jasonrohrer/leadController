@@ -26,7 +26,7 @@ static Envelope *envelope;
 // the errors get huge
 // THIS, however, evenly divides our sample rate (22050)
 // which means that we get perfect, whole-number wave tables at octaves
-static double keyFrequency = 172.265625;
+static double keyFrequency = 172.265625 / 4;
 
 
 static int sampleRate;
@@ -120,33 +120,6 @@ double whiteNoise( double inT ) {
 #include "minorGems/sound/filters/coefficientFilters.h"
 
 
-typedef struct BandPassFilterState {
-        CoeffFilterState hpState;
-        CoeffFilterState lpState;
-    } BandPassFilterState;
-
-
-BandPassFilterState initBandPass( double inCutoffFreq, double inRez ) {
-    BandPassFilterState s;
-    s.hpState = initHighPass( inCutoffFreq, sampleRate, inRez );
-    s.lpState = initLowPass( inCutoffFreq, sampleRate, inRez );
-
-    return s;
-    }
-
-
-double bandPassFilter( double inSample, BandPassFilterState *s ) {
-    double hpSample = coeffFilter( inSample, &( s->hpState ) );
-
-    return coeffFilter( hpSample, &( s->lpState ) );
-    }
-
-
-void resetBandPass( BandPassFilterState *s ) {
-    resetCoeffFilter( &( s->hpState ) );
-    resetCoeffFilter( &( s->lpState ) );
-    }
-
 CoeffFilterState sawFilterState;
 
 // file for input into gnuplot to view filtered vs unfiltered waves
@@ -159,9 +132,11 @@ double filteredSawWave( double inT ) {
         resetCoeffFilter( &sawFilterState );
         tableCount ++;
         }
-
+    /*
     double plainSaw = harmonicSaw( inT ) + harmonicSquare( inT ) + 
         whiteNoise( inT );
+    */
+    double plainSaw = sawWave( inT );
     
     double filteredSaw = coeffFilter( plainSaw, &sawFilterState );
     
@@ -173,6 +148,8 @@ double filteredSawWave( double inT ) {
     }
 
 
+
+CoeffFilterState globalFilterState;
 
 
 void initMusicPlayer() {
@@ -187,16 +164,19 @@ void initMusicPlayer() {
     setDefaultScale();
     
 
-    sawFilterState = initLowPass( keyFrequency * 2, sampleRate, 0.2 );
+    sawFilterState = initLowPass( keyFrequency*2, sampleRate, 0.21 );
+
+    globalFilterState = initLowPass( keyFrequency*8, sampleRate, .5 );
         
     timbre = new Timbre( getSampleRate(),
-                         1.0,
+                         .2,
                          keyFrequency,
                          16, 
-                         filteredSawWave,
+                         //filteredSawWave,
+                         harmonicSaw,
                          1, 10 );
 
-    envelope = new Envelope( 0.1, 0.8, 0.1,
+    envelope = new Envelope( 0.01, 0.8, 0.0,
                              1,
                              16,
                              gridStepSamples );
@@ -226,6 +206,16 @@ void setButtonPressed( int inX, int inY ) {
     lockAudio();
     pressedX = inX;
     pressedY = inY;
+    
+    unlockAudio();
+    }
+
+
+void setGlobalFilterParams( double inCutoffFreq, double inRez ) {
+    lockAudio();
+    
+    
+    globalFilterState =  initLowPass( inCutoffFreq, sampleRate, inRez );
     
     unlockAudio();
     }
@@ -294,6 +284,8 @@ void getSoundSamples( Uint8 *inBuffer, int inLengthToFillInBytes ) {
                       timbre->mWaveTableLengths[ curNotePitch ] ];
 
             //printf( "%f samp\n", samplesL[i] );
+            
+            samplesL[i] = coeffFilter( samplesL[i], &globalFilterState );
 
             samplesR[i] = samplesL[i];
             }

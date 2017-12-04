@@ -14,3 +14,6 @@ int getLastColumnPlayed();
 void setButtonPressed( int inX, int inY );
 
 
+void setGlobalFilterParams( double inCutoffFreq, double inRez );
+
+

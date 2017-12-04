@@ -42,26 +42,27 @@ void ControllerPage::actionPerformed( GUIComponent *inTarget ) {
     }
 
 
-int numBoxesX = 5;
-int numBoxesY = 16;
+int numBoxesX = 16;
+int numBoxesY = 5;
 
-static doublePair gridBottomPos = { -80, -300 };
-static int boxR = 20;
+static doublePair gridBottomPos = { -300, -160 };
+static int boxRY = 40;
+static int boxRX = 20;
 
     
 void ControllerPage::getCurrentBox( int *outX, int *outY ) {
     
-    if( mLastMouseX < gridBottomPos.x - boxR ||
-        mLastMouseY < gridBottomPos.y - boxR ) {
+    if( mLastMouseX < gridBottomPos.x - boxRX ||
+        mLastMouseY < gridBottomPos.y - boxRY ) {
         
         *outX = -1;
         *outY = -1;
         return;
         }
 
-    *outX = (int)( ( boxR + mLastMouseX - gridBottomPos.x ) / ( boxR * 2 ) );
+    *outX = (int)( ( boxRX + mLastMouseX - gridBottomPos.x ) / ( boxRX * 2 ) );
 
-    *outY = (int)( ( boxR + mLastMouseY - gridBottomPos.y ) / ( boxR * 2 ) );
+    *outY = (int)( ( boxRY + mLastMouseY - gridBottomPos.y ) / ( boxRY * 2 ) );
 
     if( *outX >= numBoxesX ||
         *outY >= numBoxesY ) {
@@ -98,11 +99,11 @@ void ControllerPage::draw( doublePair inViewCenter,
 
             doublePair pos = gridBottomPos;
             
-            pos.y += y * 2 * boxR;
-            pos.x += x * 2 * boxR;
+            pos.y += y * 2 * boxRY;
+            pos.x += x * 2 * boxRX;
             
 
-            drawSquare( pos, boxR - 2 );
+            drawRect( pos, boxRX - 2, boxRY - 2 );
             }
         }
     }
@@ -122,6 +123,6 @@ void ControllerPage::pointerMove( float inX, float inY ) {
     int x, y;
     getCurrentBox( &x, &y );
     
-    setButtonPressed( x, y );
+    setButtonPressed( 4 - y, x );
     }
 
