@@ -28,6 +28,7 @@ int usedScaleNotes = 5;
 
 
 void setDefaultScale() {
+    /*
     usedScaleNotes = 5;
     // major pentatonic
     //int halfstepMap[ SCALE_SIZE ] = { 0, 2, 4, 7, 9 };
@@ -37,6 +38,7 @@ void setDefaultScale() {
     halfstepMap[2] = 4;
     halfstepMap[3] = 7;
     halfstepMap[4] = 9;
+    */
     /*
     // minor pentatonic
     //int halfstepMap[ SCALE_SIZE ] = { 0, 3, 5, 7, 10 };
@@ -47,7 +49,7 @@ void setDefaultScale() {
     halfstepMap[4] = 10;
     */
 
-    /*
+    
     // major
     usedScaleNotes = 7;
     halfstepMap[0] = 0;
@@ -57,7 +59,7 @@ void setDefaultScale() {
     halfstepMap[4] = 7;
     halfstepMap[5] = 9;
     halfstepMap[6] = 11;
-    */
+    
  
     /*
     // minor

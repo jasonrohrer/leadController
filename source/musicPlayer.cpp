@@ -176,8 +176,8 @@ double filteredSawWave( double inT ) {
 
 
 void initMusicPlayer() {
-    pressedX = 3;
-    pressedY = 3;
+    pressedX = -1;
+    pressedY = -1;
     lastPlayX = -1;
     
     sampleRate = getSampleRate();
@@ -257,14 +257,23 @@ void getSoundSamples( Uint8 *inBuffer, int inLengthToFillInBytes ) {
             // beginning of new step
             
             if( curNoteStepsleft == 0 ) {
-                // start new note
-                curNotePitch = pressedY;
-                // 1 step, 2 steps, 4, steps, 8, or 16 steps
-                curNoteStepLength = pow( 2, pressedX );
-                curNoteStepsleft = curNoteStepLength - 1;
-                curNoteSamplesPassed = 0;
-                //printf( "Pitch %d, steps %d, tot samp = %d\n", curNotePitch,
-                //        curNoteStepLength, numSamplesPassed );
+
+                if( pressedX >= 0 && pressedY >= 0 ) {
+                    
+                    // start new note
+                    curNotePitch = pressedY;
+                    // 1 step, 2 steps, 4, steps, 8, or 16 steps
+                    curNoteStepLength = pow( 2, pressedX );
+                    curNoteStepsleft = curNoteStepLength - 1;
+                    curNoteSamplesPassed = 0;
+                    }
+                else {
+                    // rest
+                    curNoteStepsleft = 0;
+                    curNoteStepLength = 1;
+                    curNoteSamplesPassed = 0;
+                    curNotePitch = -1;
+                    }
                 }
             else {
                 // don't play anything, step current note again

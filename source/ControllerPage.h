@@ -22,7 +22,12 @@ class ControllerPage : public GamePage, public ActionListener {
 
         virtual void makeActive( char inFresh );
         
+        virtual void pointerMove( float inX, float inY );
+
     protected:
 
-        SpriteButton *mButtonGrid[16][5];
+        float mLastMouseX, mLastMouseY;
+
+        void getCurrentBox( int *outX, int *outY );
+
     };
