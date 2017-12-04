@@ -355,17 +355,43 @@ void getSoundSamples( Uint8 *inBuffer, int inLengthToFillInBytes ) {
 
             if( curNoteStepsleft == 0 ) {
 
-                if( pressedX >= 0 && pressedY >= 0 &&
-                    // on-grid for next note length
-                    numSamplesPassed / gridStepSamples % 
-                    lrint( pow( 2, pressedX ) ) == 0 ) {
-                    
-                    // start new note
-                    curNotePitch = pressedY;
-                    // 1 step, 2 steps, 4, steps, 8, or 16 steps
-                    curNoteStepLength = pow( 2, pressedX );
-                    curNoteStepsleft = curNoteStepLength - 1;
-                    curNoteSamplesPassed = 0;
+                if( pressedX >= 0 && pressedY >= 0 ) {
+                    // on grid
+
+                    int longGridAlign = 
+                        numSamplesPassed / gridStepSamples % 
+                        lrint( pow( 2, pressedX ) ); 
+
+                    if( longGridAlign == 0 ) {
+                        // on-grid for next note length
+
+                        // start new note
+                        curNotePitch = pressedY;
+                        // 1 step, 2 steps, 4, steps, 8, or 16 steps
+                        curNoteStepLength = pow( 2, pressedX );
+                        curNoteStepsleft = curNoteStepLength - 1;
+                        curNoteSamplesPassed = 0;
+                        }
+                    else {
+                        // off-grid, start a shorter note
+                        curNotePitch = pressedY;
+                        // 1 step, 2 steps, 4, steps, 8, or 16 steps
+                        if( longGridAlign >= 8 ) {
+                            curNoteStepLength = 8;
+                            }
+                        else if( longGridAlign >= 4 ) {
+                            curNoteStepLength = 4;
+                            }
+                        else if( longGridAlign >= 2 ) {
+                            curNoteStepLength = 2;
+                            }
+                        else {
+                            curNoteStepLength = 1;
+                            }
+                        
+                        curNoteStepsleft = curNoteStepLength - 1;
+                        curNoteSamplesPassed = 0;
+                        }
                     }
                 else {
                     // rest
