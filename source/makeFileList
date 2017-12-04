@@ -21,6 +21,9 @@ PageComponent.cpp \
 Button.cpp \
 SpriteButton.cpp \
 message.cpp \
+musicPlayer.cpp \
+Timbre.cpp \
+Envelope.cpp \
 
 
 GAME_GRAPHICS = \

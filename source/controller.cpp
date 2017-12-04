@@ -36,7 +36,7 @@
 
 
 
-
+#include "musicPlayer.h"
 #include "ControllerPage.h"
 
 
@@ -283,7 +283,7 @@ void initFrameDrawer( int inWidth, int inHeight, int inTargetFrameRate,
     setMouseReportingMode( true );
     
     
-    
+    initMusicPlayer();
     
 
 
@@ -303,8 +303,11 @@ void initFrameDrawer( int inWidth, int inHeight, int inTargetFrameRate,
 
 
 
-void freeFrameDrawer() {
 
+void freeFrameDrawer() {
+    
+    freeMusicPlayer();
+    
     delete controllerPage;
     }
 
@@ -688,13 +691,7 @@ void drawString( const char *inString, char inForceCenter ) {
 
 
 
-void hintBufferSize( int inLengthToFillInBytes ) {
-    }
 
-
-
-void getSoundSamples( Uint8 *inBuffer, int inLengthToFillInBytes ) {
-    }
 
 
 
