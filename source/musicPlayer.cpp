@@ -62,6 +62,8 @@ typedef struct {
         Timbre *t;
         Envelope *e;
         
+        int pitch;
+        
         int sampleDuration;
         int nextSample;
     } PlayingDrumNote;
@@ -160,7 +162,7 @@ double sinThwip( double inT ) {
 double kickWave( double inT ) {
     return sinThwip( inT ) +
         // white noise at start, then fall-off
-        smoothedWhiteNoise( inT ) * ( 1 - inT / (inT + 10 ) );
+        smoothedWhiteNoise( inT ) * ( 1 - inT / (inT + 0.1 ) );
     }
 
 
@@ -250,11 +252,11 @@ void initMusicPlayer() {
 
     // kick drum type sound
     kickTimbre = new Timbre( sampleRate, 0.25,
-                             keyFrequency,
+                             keyFrequency * 6,
                              1, kickWave,
                              // extra periods in table to make room
                              // for entire kick sweep
-                             200 ); 
+                             400 ); 
 
     kickEnvelope = new Envelope(
         // AHR model
@@ -336,13 +338,15 @@ void getSoundSamples( Uint8 *inBuffer, int inLengthToFillInBytes ) {
             
             int gridStepNumber = numSamplesPassed / gridStepSamples;
             
-            if( false && gridStepNumber % 4 == 0 ) {
+            if( gridStepNumber % 8 == 0 ) {
                 PlayingDrumNote note = { snareTimbre, snareEnvelope,
+                                         0,
                                          4 * gridStepSamples, 0 };
                 drumNotes.push_back( note );
                 }
-            if( gridStepNumber % 8 == 0 ) {
+            if( gridStepNumber % 4 == 0 ) {
                 PlayingDrumNote note = { kickTimbre, kickEnvelope,
+                                         0,
                                          4 * gridStepSamples, 0 };
                 drumNotes.push_back( note );
                 }
@@ -399,9 +403,9 @@ void getSoundSamples( Uint8 *inBuffer, int inLengthToFillInBytes ) {
             samplesL[i] += note->e->getEnvelope( 4 )
                 [ note->nextSample ]
                 *
-                note->t->mWaveTable[ 0 ]
+                note->t->mWaveTable[ note->pitch ]
                 [ note->nextSample % 
-                      note->t->mWaveTableLengths[ 0 ] ];
+                      note->t->mWaveTableLengths[ note->pitch ] ];
             samplesR[i] = samplesL[i];
 
             note->nextSample++;
