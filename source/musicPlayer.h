@@ -7,7 +7,7 @@ void initMusicPlayer();
 void freeMusicPlayer();
 
 
-int getLastColumnPlayed();
+void getLastCellPlayed( int *outX, int *outY );
 
 
 // set negative to clear

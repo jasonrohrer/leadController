@@ -11,7 +11,7 @@
 
 static int pressedX, pressedY;
 
-static int lastPlayX;
+static int lastPlayX, lastPlayY;
 
 
 // 16 pitches
@@ -207,6 +207,7 @@ void initMusicPlayer() {
     pressedX = -1;
     pressedY = -1;
     lastPlayX = -1;
+    lastPlayY = -1;
     
     sampleRate = getSampleRate();
     
@@ -281,13 +282,22 @@ void freeMusicPlayer() {
     }
 
 
+// we don't use size-hinted buffers
+void freeHintedBuffers() {
+    }
 
-int getLastColumnPlayed() {
+
+
+void getLastCellPlayed( int *outX, int *outY ) {
     lockAudio();
-    int val = lastPlayX;
+    int valX = lastPlayX;
+    int valY = lastPlayY;
+    lastPlayX = -1;
+    lastPlayY = -1;
     unlockAudio();
     
-    return val;
+    *outX = valX;
+    *outY = valY;
     }
 
 
@@ -357,6 +367,9 @@ void getSoundSamples( Uint8 *inBuffer, int inLengthToFillInBytes ) {
 
                 if( pressedX >= 0 && pressedY >= 0 ) {
                     // on grid
+
+                    lastPlayX = pressedX;
+                    lastPlayY = pressedY;
 
                     int longGridAlign = 
                         numSamplesPassed / gridStepSamples % 

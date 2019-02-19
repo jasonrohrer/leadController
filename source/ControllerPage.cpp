@@ -72,6 +72,11 @@ void ControllerPage::getCurrentBox( int *outX, int *outY ) {
     }
 
 
+int bloomX = -1;
+int bloomY = -1;
+
+float bloomProgress = 0;
+
 
 void ControllerPage::draw( doublePair inViewCenter, 
                            double inViewSize ) {
@@ -93,7 +98,7 @@ void ControllerPage::draw( doublePair inViewCenter,
                 setDrawColor( 1, 0, 0, 1 );
                 }
             else {
-                setDrawColor( 1, 1, 1, 1 );
+                setDrawColor( 1, 1, 1, 0.5 );
                 }
             
 
@@ -106,6 +111,41 @@ void ControllerPage::draw( doublePair inViewCenter,
             drawRect( pos, boxRX - 2, boxRY - 2 );
             }
         }
+
+
+    int lastX, lastY;
+    getLastCellPlayed( &lastX, &lastY );
+    
+    if( lastX != -1 && lastY != -1 ) {
+        bloomX = lastY;
+        bloomY = 4 - lastX;
+        bloomProgress = 0;
+        }
+
+
+    if( bloomX != -1 && bloomY != -1 ) {
+        doublePair pos = gridBottomPos;
+        
+        pos.y += bloomY * 2 * boxRY;
+        pos.x += bloomX * 2 * boxRX;
+
+        setDrawColor( 1, 1, 0, 1 - bloomProgress );
+        
+        double bloomScale = 2 * bloomProgress + 1;
+        
+        drawRect( pos, 
+                  bloomScale * ( boxRX - 2 ), 
+                          bloomScale * ( boxRY - 2 ) );
+        
+        bloomProgress += 0.1;
+        
+        if( bloomProgress >= 1 ) {
+            bloomX = -1;
+            bloomY = -1;
+            bloomProgress = 0;
+            }
+        }
+
     }
 
 
